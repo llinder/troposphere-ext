@@ -1,0 +1,4 @@
+boto
+troposphere
+awacs
+pyyaml
