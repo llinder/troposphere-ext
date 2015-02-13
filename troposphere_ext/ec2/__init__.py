@@ -1,4 +1,3 @@
-# vi: set ts=4 expandtab:
 #
 #    Copyright (C) 2015 Lance Linder
 #
@@ -11,12 +10,19 @@ import troposphere_ext
 import collections
 import yaml
 
+from troposphere import Ref, Join, Base64
+from troposphere.ec2 import SubnetRouteTableAssociation
+from troposphere.ec2 import SubnetNetworkAclAssociation
+
 
 class VPC(troposphere.ec2.VPC):
 
     def __init__(self, title, template=None, **kwargs):
-        helper_keys = ['NetworkAclEntries', 'NetworkAcls', 'Subnets', 'AttachGateway', 'RouteTables', 'SecurityGroups']
-        clean_kwargs = { k:v for k, v in kwargs.iteritems() if not k in helper_keys }
+        helper_keys = ['NetworkAclEntries', 'NetworkAcls',
+                       'Subnets', 'AttachGateway', 'RouteTables',
+                       'SecurityGroups']
+        clean_kwargs = {k: v for k, v in kwargs.iteritems()
+                        if k not in helper_keys}
 
         self._network_acl_entries = kwargs.get('NetworkAclEntries', [])
         self._network_acls = kwargs.get('NetworkAcls', [])
@@ -51,13 +57,15 @@ class VPC(troposphere.ec2.VPC):
 
             # route tables
             for route_table in self._route_tables:
-                route_table.title = '{}{}'.format(self.title, route_table.title)
-                route_table.VpcId = troposphere.Ref(self)
+                route_table.title = '{}{}'.format(self.title,
+                                                  route_table.title)
+                route_table.VpcId = Ref(self)
 
                 # routes
                 for route in route_table.routes:
-                    route.title = '{}{}'.format(route_table.title, route.title)
-                    route.RouteTableId = troposphere.Ref(route_table)
+                    route.title = '{}{}'.format(route_table.title,
+                                                route.title)
+                    route.RouteTableId = Ref(route_table)
                     template._register_resource(route)
 
                 template._register_resource(route_table)
@@ -65,22 +73,23 @@ class VPC(troposphere.ec2.VPC):
             # subnets
             for subnet in self._subnets:
                 subnet.title = '{}{}'.format(self.title, subnet.title)
-                subnet.VpcId = troposphere.Ref(self)
+                subnet.VpcId = Ref(self)
 
                 # route table associations
                 for route_table in subnet.route_tables:
-                    route_table_assoc = troposphere.ec2.SubnetRouteTableAssociation(
-                        '{}{}Assoc'.format(subnet.title, route_table.get_ref().title),
-                        SubnetId = troposphere.Ref(subnet),
-                        RouteTableId = route_table)
+                    route_table_assoc = SubnetRouteTableAssociation(
+                        '{}{}Assoc'.format(subnet.title,
+                                           route_table.get_ref().title),
+                        SubnetId=Ref(subnet),
+                        RouteTableId=route_table)
                     template._register_resource(route_table_assoc)
 
                 # network ACL associations
                 for acl in subnet.network_acls:
-                    network_acl_assoc = troposphere.ec2.SubnetNetworkAclAssociation(
+                    network_acl_assoc = SubnetNetworkAclAssociation(
                         '{}{}Assoc'.format(subnet.title, acl.get_ref().title),
-                        SubnetId = troposphere.Ref(subnet),
-                        NetworkAclId = acl)
+                        SubnetId=troposphere.Ref(subnet),
+                        NetworkAclId=acl)
                     template._register_resource(network_acl_assoc)
 
                 template._register_resource(subnet)
@@ -89,8 +98,6 @@ class VPC(troposphere.ec2.VPC):
             for security_group in self._security_groups:
                 security_group.VpcId = troposphere.Ref(self)
                 template._register_resource(security_group)
-
-
 
     @property
     def network_acl_entries(self):
@@ -115,14 +122,15 @@ class VPC(troposphere.ec2.VPC):
     @property
     def security_groups(self):
         return self._security_groups
-    
+
 
 class RouteTable(troposphere.ec2.RouteTable):
 
     def __init__(self, title, template=None, **kwargs):
         helper_keys = ['Routes']
-        clean_kwargs = { k:v for k, v in kwargs.iteritems() if not k in helper_keys }
-        
+        clean_kwargs = {k: v for k, v in kwargs.iteritems()
+                        if k not in helper_keys}
+
         self._routes = kwargs.get('Routes', [])
         super(RouteTable, self).__init__(title, template, **clean_kwargs)
 
@@ -137,7 +145,7 @@ class Route(troposphere.ec2.Route):
         depends_on = self.resource.get('DependsOn')
         if isinstance(depends_on, troposphere_ext.TRef):
             self.resource['DependsOn'] = depends_on.get_ref().title
-                
+
         return super(Route, self).JSONrepr()
 
 
@@ -145,7 +153,8 @@ class Subnet(troposphere.ec2.Subnet):
 
     def __init__(self, title, template=None, **kwargs):
         helper_keys = ['NetworkAcls', 'RouteTables']
-        clean_kwargs = { k:v for k, v in kwargs.iteritems() if not k in helper_keys }
+        clean_kwargs = {k: v for k, v in kwargs.iteritems()
+                        if k not in helper_keys}
 
         self._network_acls = kwargs.get('NetworkAcls', [])
         self._route_tables = kwargs.get('RouteTables', [])
@@ -162,18 +171,20 @@ class Subnet(troposphere.ec2.Subnet):
 
 
 class NetworkAcl(troposphere.ec2.NetworkAcl):
-    
+
     def __init__(self, title, template=None, **kwargs):
         helper_keys = ['NetworkAclEntries']
-        clean_kwargs = { k:v for k, v in kwargs.iteritems() if not k in helper_keys }
-        
+        clean_kwargs = {k: v for k, v in kwargs.iteritems()
+                        if k not in helper_keys}
+
         self._network_acl_entries = kwargs.get('NetworkAclEntries', [])
-        
+
         super(NetworkAcl, self).__init__(title, template, **clean_kwargs)
 
     @property
     def network_acl_entries(self):
         return self._network_acl_entries
+
 
 class CloudConfig(troposphere.AWSHelperFn):
 
@@ -183,7 +194,8 @@ class CloudConfig(troposphere.AWSHelperFn):
     def JSONrepr(self):
         result = yaml.dump(self.config, default_flow_style=False)
         result = '#cloud-config\n' + result
-        return troposphere.Base64(result)
+        return Base64(result)
+
 
 class UserData(troposphere.AWSHelperFn):
 
@@ -195,11 +207,9 @@ class UserData(troposphere.AWSHelperFn):
 
     def JSONrepr(self):
         # flatten array
-        data = [x for y in self.data for x in (y if isinstance(y, list) else [y])]
+        data = [x for y in self.data
+                for x in (y if isinstance(y, list) else [y])]
         # strip margin from the strings
-        data = [ self._strip_margin(v) if isinstance(v, str) else v for v in data]
-        return troposphere.Base64(troposphere.Join('', data))
-
-
-
-
+        data = [self._strip_margin(v) if isinstance(v, str) else v
+                for v in data]
+        return Base64(Join('', data))

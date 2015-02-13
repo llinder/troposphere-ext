@@ -1,4 +1,4 @@
-boto
-troposphere
-awacs
-pyyaml
+boto>=2.20.1
+troposphere>=0.7.1
+awacs>=0.4.2
+pyyaml>=3.11
