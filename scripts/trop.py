@@ -10,7 +10,7 @@ import logging
 import os
 import yaml
 
-from troposphere.utils import Tropext
+from troposphere_ext.utils import Tropext
 
 log = logging.getLogger('tropext')
 log.addHandler(logging.StreamHandler())

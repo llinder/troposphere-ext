@@ -31,6 +31,7 @@ setup(
     url='https://github.com/llinder/troposphere-ext',
     package_data={},
     packages=find_packages(exclude=['tests', 'tests.*']),
+    scripts=[os.path.join('scripts', 'trop.py')],
     test_suite='tests',
     install_requires=required,
     setup_requires=dev_required,

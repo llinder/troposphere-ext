@@ -146,7 +146,8 @@ class Template(object):
 
         if isinstance(resource, BaseAWSObject):
             matches = [v for k, v in self._resources.iteritems()
-                       if resource.type is v.type and re.search(regex, k)]
+                       if resource.resource_type
+                       is v.resource_type and re.search(regex, k)]
         else:
             matches = [v for k, v in self._resources.iteritems()
                        if re.search(regex, k)]
