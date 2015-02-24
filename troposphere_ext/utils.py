@@ -10,6 +10,9 @@ import logging
 import difflib
 import boto.cloudformation
 import time
+import json
+
+from boto.exception import BotoServerError
 
 
 class Tropext(object):
@@ -149,11 +152,15 @@ class Tropext(object):
                                                template_body=template_body,
                                                parameters=template_params,
                                                capabilities=['CAPABILITY_IAM'])
+            except BotoServerError as be:
+                error = json.loads(be.body)['Error']
+                code = error['Code']
+                message = error['Message']
+                self._log.warn('{code}: {message}'.format(**locals()))
             except Exception as e:
                 self._log.exception("Error updating stack '{}' from template "
                                     "'{}', error was '{}'"
-                                    .format(fq_stack_name,
-                                            template_name,
+                                    .format(fq_stack_name, template_name, 
                                             str(e)))
 
             return None
@@ -194,10 +201,10 @@ class Tropext(object):
                     yield e
                     seen.add(e.event_id)
 
-            if e.resource_type == \
-                ('AWS::CloudFormation::Stack' and
-                    ('COMPLETE' in e.resource_status or
-                        'FAILED' in e.resource_status)):
+            # exit loop on cloud formation complete or failed event
+            if (e.resource_type == 'AWS::CloudFormation::Stack'
+                and ('COMPLETE' in e.resource_status 
+                    or 'FAILED' in e.resource_status)):
                 break
 
             time.sleep(5)

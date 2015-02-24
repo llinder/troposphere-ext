@@ -18,7 +18,7 @@ from troposphere.ec2 import Instance, SecurityGroup, InternetGateway
 from troposphere.s3 import Bucket
 from troposphere.iam import Role, InstanceProfile
 from troposphere.elasticloadbalancing import LoadBalancer
-from troposphere.route53 import RecordSetType
+from troposphere.route53 import RecordSetType, RecordSetGroup
 
 from troposphere_ext.autoscaling import AutoScalingGroup
 from troposphere_ext.ec2 import VPC
@@ -135,6 +135,10 @@ class Template(object):
         self._create_resource(RecordSetType, *args, **kwargs)
         return self
 
+    def record_set_group(self, *args, **kwargs):
+        self._create_resource(RecordSetGroup, *args, **kwargs)
+        return self
+
     # ----------------------------------
     #  Template APIs and helper methods
     # ----------------------------------
@@ -162,7 +166,8 @@ class Template(object):
             return None
 
     def add_resource(self, resource):
-        return self._register_resource(resource)[0]
+        self._register_resource(resource)
+        return self
 
     def _register_resource(self, resources):
 
@@ -172,6 +177,8 @@ class Template(object):
 
         def _r(accu, r_resources):
             value = r_resources[0]
+            if hasattr(value, 'set_template'):
+                value.set_template(self)
             # prefix resource title with the template name
             if self._name not in value.title:
                 value.title = '{}{}'.format(self._name, value.title)
@@ -382,7 +389,7 @@ class SRef(AWSHelperFn):
             if isinstance(self._resource, BaseAWSObject) else self._resource
         if isinstance(self._resource, BaseAWSObject):
             matches = [res for res in resources
-                       if res.resource_type == self._resource.type
+                       if res.resource_type == self._resource.resource_type
                        and re.search(regex, res.logical_resource_id)]
         else:
             matches = [res for res in resources

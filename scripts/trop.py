@@ -46,7 +46,7 @@ def create(args):
 
             return 0
         else:
-            log.warn('Stack creation failed.')
+            # log.warn('Stack creation failed.')
             return 1
 
     except Exception as e:
@@ -72,7 +72,7 @@ def update(args):
 
             return 0
         else:
-            log.warn('Stack update failed.')
+            # log.warn('Stack update failed.')
             return 1
 
     except Exception as e:
@@ -143,24 +143,24 @@ def __watch(no_color, stack_name, namespace, region, fetch=True):
         for e in tropext.watch(fetch):
             if no_color:
                 if 'FAILED' in e.resource_status:
-                    print ('{} {} {} {}'
-                           .format(e.resource_status, e.resource_type,
-                                   e.logical_resource_id,
+                    print ('[{}] {} {} {} {}'
+                           .format(e.timestamp, e.resource_status,
+                                   e.resource_type, e.logical_resource_id,
                                    e.resource_status_reason))
                 else:
-                    print ('{} {} {}'
-                           .format(e.resource_status, e.resource_type,
-                                   e.logical_resource_id))
+                    print ('[{}] {} {} {}'
+                           .format(e.timestamp, e.resource_status,
+                                   e.resource_type, e.logical_resource_id))
             else:
                 if 'FAILED' in e.resource_status:
-                    print ('{}{} {} {} {}{}'
-                           .format(color_map[e.resource_status],
+                    print ('{}[{}] {} {} {} {}{}'
+                           .format(color_map[e.resource_status], e.timestamp,
                                    e.resource_status, e.resource_type,
                                    e.logical_resource_id,
                                    e.resource_status_reason, '\033[0m'))
                 else:
-                    print ('{}{} {} {}{}'
-                           .format(color_map[e.resource_status],
+                    print ('{}[{}] {} {} {}{}'
+                           .format(color_map[e.resource_status], e.timestamp,
                                    e.resource_status, e.resource_type,
                                    e.logical_resource_id, '\033[0m'))
 
