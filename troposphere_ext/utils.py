@@ -160,7 +160,7 @@ class Tropext(object):
             except Exception as e:
                 self._log.exception("Error updating stack '{}' from template "
                                     "'{}', error was '{}'"
-                                    .format(fq_stack_name, template_name, 
+                                    .format(fq_stack_name, template_name,
                                             str(e)))
 
             return None
@@ -203,8 +203,8 @@ class Tropext(object):
 
             # exit loop on cloud formation complete or failed event
             if (e.resource_type == 'AWS::CloudFormation::Stack'
-                and ('COMPLETE' in e.resource_status 
-                    or 'FAILED' in e.resource_status)):
+                and ('COMPLETE' in e.resource_status
+                     or 'FAILED' in e.resource_status)):
                 break
 
             time.sleep(5)

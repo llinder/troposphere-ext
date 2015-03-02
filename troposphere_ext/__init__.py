@@ -176,46 +176,50 @@ class Template(object):
                               else [resources]
 
         def _r(accu, r_resources):
-            value = r_resources[0]
-            if hasattr(value, 'set_template'):
-                value.set_template(self)
-            # prefix resource title with the template name
-            if self._name not in value.title:
-                value.title = '{}{}'.format(self._name, value.title)
-            # add a name tag to the resource for better
-            # visibility in the AWS web console
-            if 'Tags' in value.props:
-                # convert camel case title to snake case
-                name_tag = utils.camel_to_snake(value.title)
-                # sometimes troposphere entities use Tags and other
-                # times they use a list of Tag
-                is_tags_type = value.props['Tags'][0] is troposphere.Tags
-                asg_type = 'AWS::AutoScaling::AutoScalingGroup'
-                if not hasattr(value, 'Tags'):
-                    # no tags defined so create new instance and set it
-                    if is_tags_type:
-                        # handle Tags type
-                        tags = Tags(Name=name_tag)
-                    else:
-                        if value.resource_type == asg_type:
-                            tags = [ASGTag('Name', name_tag, True)]
+            if len(r_resources) < 1:
+                return accu
+            else:
+                value = r_resources[0]
+                if hasattr(value, 'set_template'):
+                    value.set_template(self)
+                # prefix resource title with the template name
+                if self._name not in value.title:
+                    value.title = '{}{}'.format(self._name, value.title)
+                # add a name tag to the resource for better
+                # visibility in the AWS web console
+                if 'Tags' in value.props:
+                    # convert camel case title to snake case
+                    name_tag = utils.camel_to_snake(value.title)
+                    # sometimes troposphere entities use Tags and other
+                    # times they use a list of Tag
+                    is_tags_type = value.props['Tags'][0] is troposphere.Tags
+                    asg_type = 'AWS::AutoScaling::AutoScalingGroup'
+                    if not hasattr(value, 'Tags'):
+                        # no tags defined so create new instance and set it
+                        if is_tags_type:
+                            # handle Tags type
+                            tags = Tags(Name=name_tag)
                         else:
-                            tags = [EC2Tag('Name', name_tag)]
-                    value.Tags = tags
-                else:
-                    # already has tags so we need to merge the name tag in
-                    if isinstance(value.Tags, Tags):
-                        # handle Tags type
-                        value.Tags.tags.append(
-                            {'Key': 'Name', 'Value': name_tag})
+                            if value.resource_type == asg_type:
+                                tags = [ASGTag('Name', name_tag, True)]
+                            else:
+                                tags = [EC2Tag('Name', name_tag)]
+                        value.Tags = tags
                     else:
-                        if value.resource_type == asg_type:
-                            value.Tags.append(ASGTag('Name', name_tag, True))
+                        # already has tags so we need to merge the name tag in
+                        if isinstance(value.Tags, Tags):
+                            # handle Tags type
+                            value.Tags.tags.append(
+                                {'Key': 'Name', 'Value': name_tag})
                         else:
-                            value.Tags.append(EC2Tag('Name', name_tag))
+                            if value.resource_type == asg_type:
+                                value.Tags.append(ASGTag('Name',
+                                                         name_tag, True))
+                            else:
+                                value.Tags.append(EC2Tag('Name', name_tag))
 
-            accu.append(self._update(self._resources, value))
-            return accu if len(r_resources) < 2 else _r(accu, r_resouces[1:])
+                accu.append(self._update(self._resources, value))
+                return _r(accu, r_resources[1:])
 
         return _r([], resources)
 

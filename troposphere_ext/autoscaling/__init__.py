@@ -29,10 +29,13 @@ class AutoScalingGroup(TropAutoScalingGroup):
         self.template = template
 
         if isinstance(self._load_balancers, list):
-            lb_names = [Ref(template._register_resource(lb)[0]) for lb in self._load_balancers]
+            lb_names = [
+                Ref(template._register_resource(lb)[0])
+                for lb in self._load_balancers]
+
             self.__setattr__('LoadBalancerNames', lb_names)
 
         if self._launch_config is not None:
             template._register_resource(self._launch_config)
-            self.__setattr__('LaunchConfigurationName', 
+            self.__setattr__('LaunchConfigurationName',
                              Ref(self._launch_config))
