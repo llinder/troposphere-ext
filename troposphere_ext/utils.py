@@ -202,9 +202,9 @@ class Tropext(object):
                     seen.add(e.event_id)
 
             # exit loop on cloud formation complete or failed event
-            if (e.resource_type == 'AWS::CloudFormation::Stack'
-                and ('COMPLETE' in e.resource_status
-                     or 'FAILED' in e.resource_status)):
+            if (e.resource_type == 'AWS::CloudFormation::Stack' and
+                ('COMPLETE' in e.resource_status or
+                 'FAILED' in e.resource_status)):
                 break
 
             time.sleep(5)

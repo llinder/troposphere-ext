@@ -393,8 +393,8 @@ class SRef(AWSHelperFn):
             if isinstance(self._resource, BaseAWSObject) else self._resource
         if isinstance(self._resource, BaseAWSObject):
             matches = [res for res in resources
-                       if res.resource_type == self._resource.resource_type
-                       and re.search(regex, res.logical_resource_id)]
+                       if res.resource_type == self._resource.resource_type and
+                       re.search(regex, res.logical_resource_id)]
         else:
             matches = [res for res in resources
                        if re.search(regex, res.logical_resource_id)]
