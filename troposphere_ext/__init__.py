@@ -63,6 +63,12 @@ class Template(object):
         self._mappings[title] = mapping
         return self
 
+    def output(self, title, **kwargs):
+        self._update(self._outputs, troposphere.Output(
+            title, **kwargs
+        ))
+        return self
+
     # ------------------
     #  S3
     # ------------------
@@ -158,7 +164,7 @@ class Template(object):
 
         if len(matches) > 1:
             titles = [r.title for r in matches]
-            raise LookupError('More than one match found in "{title}" '
+            raise LookupError('More than one match found in "{titles}" '
                               'for regex "{regex}".'.format(**locals()))
         elif len(matches) > 0:
             return matches[0]

@@ -298,9 +298,10 @@ def main():
 
     args = p.parse_args()
 
-    # log_levels = [logging.WARNING, logging.INFO, logging.DEBUG]
-
     log.setLevel(args.log_level)
+
+    # add current directory to the system path to resolve templates
+    sys.path.append(os.getcwd())
 
     return args.func(args)
 
