@@ -19,6 +19,7 @@ from troposphere.s3 import Bucket
 from troposphere.iam import Role, InstanceProfile
 from troposphere.elasticloadbalancing import LoadBalancer
 from troposphere.route53 import RecordSetType, RecordSetGroup
+from troposphere.cloudfront import Distribution
 
 from troposphere_ext.autoscaling import AutoScalingGroup
 from troposphere_ext.ec2 import VPC
@@ -75,6 +76,14 @@ class Template(object):
 
     def bucket(self, *args, **kwargs):
         self._create_resource(Bucket, *args, **kwargs)
+        return self
+
+    # -------------------
+    #  CloudFront
+    # -------------------
+
+    def distribution(self, *args, **kwargs):
+        self._create_resource(Distribution, *args, **kwargs)
         return self
 
     # -------------------
